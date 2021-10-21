@@ -1,0 +1,172 @@
+@charset "utf-8";
+
+
+/* Login */
+.admin_page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100%;
+}
+
+.admin_wrap {
+    width: 300px;
+    margin: 0 auto;
+    padding: 3rem 1rem;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 3px 3px 5px rgb(0, 0, 0, 0.2);
+}
+
+.admin_logo {
+    background: url(../images/logo.png) no-repeat center center;
+    width: 300px;
+    height: 90px;
+    margin: 0 auto;
+    background-size: 100%;
+}
+
+.admin_page .sub_page_tit {
+    margin: 0 0 1rem 0
+}
+
+.btn_wrap {
+    margin: 1rem 0
+}
+
+.admin {
+    margin-bottom: 1rem;
+    display: inline-block;
+    width: 100%;
+}
+
+.admin tr {
+    line-height: 3;
+    width: 100%;
+    display: inline-block;
+}
+
+.admin tr .admin_tit {
+    text-align: left;
+    width: 100px;
+}
+
+.admin input[type="text"],
+.admin input[type="password"] {
+    border: 1px solid #9fa0a0;
+    padding: 0.3rem 0.5rem;
+    width: 190px;
+}
+
+.pw_tit {
+    width: 150px;
+}
+
+.pw_txt input[type="text"] {
+    width: 105px;
+}
+
+.pw_txt-1 input[type="text"] {
+    width: 165px
+}
+
+.admin input[type="text"]:focus,
+.admin input[type="password"]:focus {
+    outline: 1px solid #00ad6b;
+    border: 1px solid #00ad6b;
+}
+
+.login_btn {
+    background: none;
+    border: 1px solid #00ad6b;
+    color: #00ad6b;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    cursor: pointer
+}
+
+.login_btn:hover {
+    color: #fff;
+    background-color: #00ad6b;
+    transition: 0.3s ease
+}
+
+.table_arrow a {
+    color: #00ad6b;
+}
+
+.table_num a {
+    background-color: #eee;
+    padding: 3px 5px;
+}
+
+.table_paging b {
+    color: #00ad6b;
+    background-color: #e9fdf5;
+    padding: 3px 5px;
+}
+
+.table_prev,
+.table_next {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-left: 1px solid #00ad6b;
+    border-top: 1px solid #00ad6b;
+    transform: rotate(-45deg)
+}
+
+.table_next {
+    transform: rotate(135deg)
+}
+
+.menu li:last-child {
+    color: #fff
+}
+
+.bookList_table {
+    min-width: 700px;
+}
+
+.bookList tr {
+    width: 100%
+}
+
+.bookList tr td {
+    border: 1px solid #eee;
+    padding: 0 0.2rem;
+    font-size: 0.9rem;
+}
+
+.bookList tr .book_img img {
+    width: 100%
+}
+
+.book_search input[type="text"] {
+    border: 1px solid #9fa0a0;
+    padding: 0.3rem 1rem;
+    width: 30%
+}
+
+@media (max-width:1024px) {
+    .menu li:last-child {
+        color: #000
+    }
+
+    .book_search input[type="text"] {
+        width: 70%
+    }
+
+    .boolList_wrap {
+        overflow-x: auto;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .boolList_wrap::-webkit-scrollbar {
+        display: none;
+    }
+
+
+}

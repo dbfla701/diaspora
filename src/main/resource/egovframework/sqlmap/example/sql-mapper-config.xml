@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+    <typeAliases>
+		<typeAlias alias="BoardDto" type="egovframework.example.Dto.BoardDto" />
+		<typeAlias alias="ApplyDto" type="egovframework.example.Dto.ApplyDto" />
+		<typeAlias alias="NewsDto" type="egovframework.example.Dto.NewsDto" />
+		<typeAlias alias="HomeDto" type="egovframework.example.Dto.HomeDto" />
+    </typeAliases>
+    
+    <mappers>
+	<mapper resource="/egovframework/sqlmap/example/BoardMapper.xml"/>
+</mappers>
+    
+</configuration>

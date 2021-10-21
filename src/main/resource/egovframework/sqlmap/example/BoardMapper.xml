@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.sqlmap.BoardMapper">
+
+	<!-- 관리자 회원가입 -->
+	<insert id="joinUser" parameterType="BoardDto">
+		INSERT INTO JOIN
+		(NAME,ADMINID,PW,EMAIL,AUTH) VALUES
+		(#{name},#{adminid},#{pw},#{email},default)
+	</insert>
+
+	<!-- 로그인 -->
+	<select id="login" parameterType="BoardDto" resultType="BoardDto">
+		SELECT
+		ADMINID,AUTH, PW FROM JOIN WHERE ADMINID=#{adminid}
+	</select>
+
+	<!-- 로그인 -->
+	<select id="login_bak" parameterType="BoardDto" resultType="BoardDto">
+		SELECT
+		ADMINID FROM JOIN WHERE ADMINID=#{adminid} and PW=#{pw}
+	</select>
+
+	<!-- pw count -->
+	<select id="pwCount" resultType="int" parameterType="String">
+		SELECT
+		count(*) FROM JOIN WHERE PW=#{pw}
+	</select>
+
+	<!-- pw select -->
+	<select id="pwSelect" resultType="String">
+		SELECT PW FROM JOIN
+	</select>
+
+	<!-- security 비번, 권한 -->
+	<select id="loginChk" resultType="BoardDto" parameterType="String">
+		SELECT PW, AUTH FROM JOIN WHERE ADMINID=#{adminid}
+	</select>
+
+	<!-- 비번 변경 -->
+	<update id="pwUpdate" parameterType="String">
+		UPDATE JOIN SET PW=#{pw}
+	</update>
+
+	<!-- count세기 -->
+	<select id="count" parameterType="BoardDto" resultType="int">
+		SELECT
+		COUNT(*) FROM JOIN WHERE ADMINID=#{adminid ,jdbcType=VARCHAR}
+		and PW=#{pw ,jdbcType=VARCHAR}
+	</select>
+
+	<!-- RETRY 0부터 시작 -->
+	<update id="retryReset">
+		UPDATE LOGINFAIL SET RETRY=0
+	</update>
+
+	<!-- 로그인 틀릴때 횟수 세기 -->
+	<update id="loginFailCount">
+		UPDATE LOGINFAIL SET RETRY=RETRY+1
+	</update>
+
+	<select id="loginFail" resultType="int">
+		SELECT RETRY FROM LOGINFAIL
+	</select>
+
+	<select id="retryTime" resultType="String">
+		SELECT RETRYTIME FROM
+		LOGINFAIL
+	</select>
+
+	<!-- 마지막 로그인 시간 -->
+	<update id="lastLogin" parameterType="BoardDto">
+		UPDATE LOGINFAIL SET
+		RETRYTIME=SYSDATE WHERE RETRY=6
+	</update>
+
+	<!-- 참가신청 폼 작성 -->
+	<insert id="apply" parameterType="ApplyDto">
+		INSERT INTO APPLY
+		(SEQ,
+		TITLE,
+		AUTHOR, ISBN, LANG,
+		PUBLISHER, PUBDATE, TRANS_NAME, TRANS_AUTHOR,
+		TRANS_ISBN,
+		TRANS_EDIT, TRANS_DATE, CONTENT1 ,CONTENT2, ID, EMAIL,
+		REGDATE, DOWNLOAD, PERMIT
+		)VALUES(ASEQ.NEXTVAL,#{title
+		,jdbcType=VARCHAR},#{author ,jdbcType=VARCHAR},#{isbn
+		,jdbcType=VARCHAR},
+		#{lang ,jdbcType=VARCHAR},#{publisher
+		,jdbcType=VARCHAR},#{pubdate ,jdbcType=VARCHAR},
+		#{trans_name
+		,jdbcType=VARCHAR},#{trans_author ,jdbcType=VARCHAR},#{trans_isbn
+		,jdbcType=VARCHAR},
+		#{trans_edit ,jdbcType=VARCHAR},#{trans_date
+		,jdbcType=VARCHAR},#{content1 ,jdbcType=VARCHAR},
+		#{content2
+		,jdbcType=VARCHAR},#{id ,jdbcType=VARCHAR},#{email
+		,jdbcType=VARCHAR},SYSDATE,#{download ,jdbcType=VARCHAR},
+		default)
+	</insert>
+
+	<!-- 파일 업로드 -->
+	<insert id="upload" parameterType="ApplyDto">
+		INSERT INTO FILEUPLOAD
+		(FILENAME, FILESIZE, SAVEPATH, EMAIL) VALUES
+		(#{filename},#{filesize},#{savepath}, #{email})
+	</insert>
+
+	<!-- 파일 다운로드 -->
+	<select id="down" parameterType="ApplyDto" resultType="ApplyDto">
+		SELECT
+		SAVEPATH, FILENAME
+		FROM FILEUPLOAD
+		WHERE EMAIL=#{email}
+	</select>
+
+	<!-- 참가신청관리 (목록) -->
+	<select id="applyList" resultType="ApplyDto">
+		SELECT SEQ, ID, EMAIL,
+		REGDATE, PERMIT
+		FROM APPLY WHERE PERMIT IS NULL ORDER BY SEQ
+	</select>
+
+	<!-- 추천서 전체 목록 -->
+	<select id="allList" resultType="ApplyDto" parameterType="hashMap">
+		SELECT
+		SEQ, ID, EMAIL, REGDATE,PERMIT
+		FROM (
+		SELECT ROW_NUMBER() OVER (ORDER BY
+		REGDATE DESC) NUM
+		, H.*
+		FROM APPLY H
+		ORDER BY REGDATE DESC
+		)
+		WHERE NUM
+		BETWEEN ${displayPost} AND ${postNum}
+	</select>
+
+	<!-- 검색 -->
+	<select id="search" resultType="ApplyDto" parameterType="ApplyDto">
+		SELECT
+		SEQ, ID, EMAIL, REGDATE
+		FROM APPLY WHERE ID LIKE '${id}'
+	</select>
+
+	<!-- 이메일 중복체크 -->
+	<select id="emailChk" resultType="int" parameterType="String">
+		SELECT
+		COUNT(*) FROM APPLY WHERE EMAIL=#{email}
+	</select>
+
+	<!-- 게시판 상세보기 -->
+	<select id="detail" parameterType="ApplyDto" resultType="ApplyDto">
+		SELECT *
+		FROM APPLY WHERE SEQ=#{seq}
+	</select>
+
+	<!-- 반려 update -->
+	<update id="deny" parameterType="String">
+		UPDATE APPLY SET PERMIT='반려'
+		WHERE EMAIL=#{email}
+	</update>
+
+	<!-- 반려 목록 -->
+	<select id="denyList" resultType="ApplyDto">
+		SELECT SEQ, ID, EMAIL, REGDATE
+		FROM APPLY WHERE PERMIT='반려'
+	</select>
+
+	<!-- 후보 update -->
+	<update id="permit" parameterType="String">
+		UPDATE APPLY SET PERMIT='후보'
+		WHERE EMAIL=#{email}
+	</update>
+
+	<!-- 후보 목록 -->
+	<select id="permitList" resultType="ApplyDto">
+		SELECT SEQ, ID, EMAIL,
+		REGDATE FROM APPLY WHERE PERMIT='후보'
+	</select>
+
+	<!-- 최종후보 update -->
+	<update id="candi" parameterType="String">
+		UPDATE APPLY SET PERMIT='최종후보'
+		WHERE EMAIL=#{email}
+	</update>
+
+	<!-- 최종후보 목록 -->
+	<select id="candiList" resultType="ApplyDto">
+		SELECT SEQ, ID, EMAIL, REGDATE
+		FROM APPLY WHERE PERMIT='최종후보'
+	</select>
+
+	<!-- 최종후보에서 삭제 -->
+	<update id="delete" parameterType="String">
+		UPDATE APPLY SET PERMIT='후보'
+		WHERE EMAIL=#{email}
+	</update>
+
+	<!-- news 글등록 -->
+	<insert id="news" parameterType="NewsDto">
+		INSERT INTO NEWS
+		(SEQ,
+		NEWS_TITLE, NEWS_CONTENT, REGDATE, IMSI) VALUES
+		(NSEQ.NEXTVAL,#{news_title},#{news_content},SYSDATE,'저장')
+	</insert>
+
+	<!-- news 글목록 -->
+	<select id="newsList" resultType="NewsDto">
+		SELECT SEQ, NEWS_TITLE, REGDATE
+		FROM
+		NEWS WHERE IMSI='저장' ORDER BY SEQ
+	</select>
+
+	<!-- 임시저장 -->
+	<insert id="imsi" parameterType="NewsDto">
+		INSERT INTO NEWS
+		(SEQ,
+		NEWS_TITLE, NEWS_CONTENT, REGDATE, IMSI) VALUES
+		(NSEQ.NEXTVAL,#{news_title},#{news_content},SYSDATE,'임시')
+	</insert>
+
+	<!-- 임시저장 목록 -->
+	<select id="imsiList" resultType="NewsDto">
+		SELECT SEQ, NEWS_TITLE,
+		REGDATE, IMSI FROM NEWS WHERE IMSI='임시'
+	</select>
+
+	<!-- 사용자 기록 저장 -->
+	<insert id="history" parameterType="BoardDto">
+		INSERT INTO HISTORY
+		(IP,IPTIME) VALUES(#{ip},SYSDATE)
+	</insert>
+
+	<!-- 로그인 기록 list + 페이징 -->
+	<select id="historyList" resultType="BoardDto" parameterType="hashMap">
+		SELECT *
+		FROM (
+		SELECT ROW_NUMBER() OVER (ORDER BY IPTIME DESC) NUM
+		, H.*
+		FROM HISTORY H
+		ORDER BY IPTIME DESC
+		)
+		WHERE NUM BETWEEN ${displayPost}
+		AND ${postNum}
+	</select>
+
+	<!-- ck에디터 -->
+	<insert id="ckurl" parameterType="HomeDto">
+		INSERT INTO CK (V_URL) VALUES
+		(#{v_url})
+	</insert>
+
+	<!-- ck에디터 수정 -->
+	<update id="urlupdate" parameterType="HomeDto">
+		UPDATE CK SET
+		V_URL=#{v_url}
+	</update>
+
+	<!-- ck에디터 select -->
+	<select id="ckselect" resultType="HomeDto">
+		SELECT * FROM CK
+	</select>
+
+	<!-- 심사평 등록 -->
+	<insert id="review" parameterType="ApplyDto">
+		INSERT INTO COMMITTEE(REVIEW,
+		REVIEWTIME) VALUES (#{review},SYSDATE)
+	</insert>
+
+	<!-- 심사평 게시 -->
+	<select id="reviewSelect" resultType="ApplyDto">
+		SELECT REVIEW FROM
+		COMMITTEE
+	</select>
+
+	<!-- 2021년 연도별 아카이브 -->
+	<select id="reg2021" resultType="ApplyDto">
+		SELECT REVIEW FROM COMMITTEE
+		WHERE REVIEWTIME
+		BETWEEN TO_DATE('2021-01-01','YYYY-MM-DD') AND
+		TO_DATE('2021-12-31','YYYY-MM-DD')
+	</select>
+
+	<!-- 2022년 연도별 아카이브 -->
+	<select id="reg2022" resultType="ApplyDto">
+		SELECT REVIEW FROM COMMITTEE
+		WHERE REVIEWTIME
+		BETWEEN TO_DATE('2022-01-01','YYYY-MM-DD') AND
+		TO_DATE('2022-12-31','YYYY-MM-DD')
+	</select>
+
+	<!-- 새소식 글 5개 main에 띄우기 -->
+	<select id="newsSelect" resultType="NewsDto">
+		SELECT NEWS_TITLE
+		FROM (SELECT
+		*
+		FROM (SELECT *
+		FROM NEWS ORDER BY REGDATE DESC) WHERE IMSI='저장')
+		WHERE
+		ROWNUM BETWEEN 1 AND 5
+	</select>
+
+	<!-- 최종후보작 메인에 나올거 5개 -->
+	<select id="candiSelect" resultType="ApplyDto">
+		SELECT TITLE
+		FROM (SELECT *
+		FROM (SELECT *
+		FROM APPLY ) WHERE PERMIT='최종후보')
+		WHERE ROWNUM BETWEEN 1
+		AND 5
+	</select>
+
+	<!-- 임시글 detail -->
+	<select id="imsiDetail" resultType="NewsDto" parameterType="NewsDto">
+		SELECT SEQ, NEWS_TITLE, NEWS_CONTENT, REGDATE FROM NEWS WHERE
+		IMSI='임시' AND SEQ=#{seq}
+	</select>
+
+	<!-- 임시-> 글 등록 -->
+	<update id="newsUpdate" parameterType="NewsDto">
+		UPDATE NEWS SET
+		NEWS_TITLE=#{news_title},NEWS_CONTENT=#{news_content},
+		REGDATE=SYSDATE, IMSI='저장' WHERE SEQ=#{seq}
+	</update>
+
+	<!-- 임시글 수정할때 -->
+	<select id="imsiUpdate" parameterType="NewsDto" resultType="NewsDto">
+		SELECT NEWS_TITLE, NEWS_CONTENT FROM NEWS WHERE IMSI='임시' AND
+		SEQ=#{seq}
+	</select>
+
+	<!-- news 저장글 detail -->
+	<select id="newsDetail" resultType="NewsDto" parameterType="NewsDto">
+		SELECT SEQ, NEWS_TITLE, NEWS_CONTENT, REGDATE FROM NEWS WHERE
+		IMSI='저장' AND SEQ=#{seq}
+	</select>
+
+	<!-- history 기록 페이징 -->
+	<select id="historyPaging" resultType="int">
+		SELECT COUNT(*) FROM
+		HISTORY
+	</select>
+
+	<!-- 로그인 실패 횟수 -->
+	<update id="failCntUpdate" parameterType="String">
+		UPDATE JOIN SET failCnt
+		= NVL(failCnt, 0)+1
+		WHERE ADMINID = #{adminid}
+	</update>
+
+	<!-- 계정 비활성화 -->
+	<select id="getFailCnt" parameterType="String" resultType="BoardDto">
+		SELECT failCnt, isEnabled FROM JOIN
+		WHERE ADMINID= #{adminid}
+	</select>
+
+	<!-- 계정 change -->
+	<!-- isEnabled가 0일때 isEnabled를 1로, 아니면 0으로 -->
+	<!-- isEnabled가 0일때 failCnt를 0으로,아니면 그대로 -->
+	<update id="changeEnabled" parameterType="String">
+		UPDATE JOIN
+		SET isEnabled = (CASE isEnabled WHEN 0 THEN 1 ELSE 0 END) ,
+		failCnt = (CASE isEnabled WHEN 0 THEN 0 ELSE failCnt END)
+		WHERE ADMINID =
+		#{adminid}
+	</update>
+
+	<!-- news 새소식 이미지 업로드 -->
+	<insert id="news_fileupload" parameterType="NewsDto">
+		INSERT INTO
+		NEWS_FILEUPLOAD
+		(SEQ, FILENAME, FILESIZE, SAVEPATH) VALUES
+		(NSEQ.NEXTVAL, #{filename},#{filesize},#{savepath})
+	</insert>
+
+	<!-- 새소식 글 이미지 썸네일 select -->
+	<select id="imageSelect" parameterType="NewsDto" resultType="NewsDto">
+		SELECT FILENAME FROM NEWS_FILEUPLOAD
+		WHERE SEQ=#{seq}
+	</select>
+	
+	<!-- 수상작으로 UPDATE -->
+	<update id="susangUpdate" parameterType="String">
+		UPDATE APPLY SET PERMIT='수상작'
+		WHERE EMAIL=#{email}
+	</update>
+
+	<!-- 수상작 select -->
+	<select id="susangSelect" resultType="ApplyDto">
+		SELECT ID FROM APPLY WHERE PERMIT='수상작'
+	</select>
+	
+
+</mapper>

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+                           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+                           http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+                           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd ">
+
+	<context:component-scan
+		base-package="egovframework.example" scoped-proxy="no">
+	</context:component-scan>
+
+	<mvc:annotation-driven />
+
+	<!-- js, css 넣을 폴더 경로 지정 -->
+	<mvc:resources mapping="/resources/**"
+		location="/resources/" />
+	<mvc:resources mapping="/css/**" location="/css/" />
+	<mvc:resources mapping="/js/**" location="/js/" />
+	<mvc:resources mapping="/images/**"
+		location="/images/images/" />
+
+	<!-- 다국어 페이지 -->
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="maxUploadSize" value="100000" />
+	</bean>
+
+	<bean id="messageSource"
+		class="org.springframework.context.support.ResourceBundleMessageSource">
+		<property name="basenames">
+			<list>
+			<value>massage.message-common_en</value>
+<!-- 				<value>/WEB-INF/message/message-common_en</value>
+				<value>/WEB-INF/message/message-common_ko</value> -->
+			</list>
+		</property>
+	</bean>
+	
+		<bean id="localeResolver"
+		class="org.springframework.web.servlet.i18n.SessionLocaleResolver"></bean>
+		
+		<mvc:interceptors>
+		<bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
+			<property name="paramName" value="lang"/>
+		</bean>
+	</mvc:interceptors>
+
+<!-- 	<bean id="localeChangeInterceptor"
+		class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
+		<property name="paramName" value="lang" />
+	</bean>
+	<bean
+		class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
+		<property name="interceptors">
+			<list>
+				<ref bean="localeChangeInterceptor" />
+			</list>
+		</property> -->
+
+	<!-- oracle -->
+	<bean id="dataSource"
+		class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName"
+			value="oracle.jdbc.driver.OracleDriver" />
+			
+         <!-- 본서버 -->
+<!--       <property name="url" value="jdbc:oracle:thin:192.168.100.12@:1521/BCDB" />
+        <property name="username" value="BCDIA"/>
+        <property name="password" value="dia132"/> -->
+        
+      <!-- 로컬 서버 -->
+      <property name="url" value="jdbc:oracle:thin:@localhost:1521/XE" />
+        <property name="username" value="root"/>
+        <property name="password" value="1234"/>
+        
+	</bean>
+
+	<!-- 3. MyBatis의 SqlsessionFactory 객체를 Bean -->
+	<bean id="sqlSessionFactory"
+		class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="configLocation"
+			value="classpath:/egovframework/sqlmap/example/sql-mapper-config.xml" />
+	</bean>
+	<!--4. Spring에서 사용 하는 Bean 객체 Autowired or Resource 통해서 사용하는 객체 -->
+	<bean id="sqlSession"
+		class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="sqlSessionFactory" />
+	</bean>
+
+ 	<bean id="AdminInterceptor"
+		class="egovframework.example.interceptor.AdminInterceptor" />
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/admin/applyList.do" />
+			<mvc:mapping path="/admin/allList.do" />
+			<mvc:mapping path="/candiList.do" />
+			<mvc:mapping path="/admin/denyList.do" />
+			<mvc:mapping path="/admin/newsForm.do" />
+			<mvc:mapping path="/admin/permitList.do" />
+			<mvc:mapping path="/admin/history.do" />
+			<mvc:mapping path="/loginFail.do" />
+			<ref bean="AdminInterceptor" />
+		</mvc:interceptor>
+	</mvc:interceptors>
+
+	<bean id="viewResolver"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix"
+			value="/WEB-INF/jsp/egovframework/example/board/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	<!-- mail -->
+	<bean id="mailSender"
+		class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host" value="smtp.gmail.com" />
+		<property name="port" value="587" />
+		<property name="username" value="dbfla705@gmail.com" />
+		<property name="password" value="dbs8113." />
+		<property name="defaultEncoding" value="utf-8" />
+		<property name="javaMailProperties">
+			<props>
+				<prop key="mail.debug">true</prop>
+				<prop key="mail.smtp.starttls.required">true</prop>
+				<prop key="mail.smtp.starttls.enable">true</prop>
+				<prop key="mail.smtp.auth">true</prop>
+			</props>
+		</property>
+	</bean>
+
+	<bean id="webexpressionHandler"
+		class="org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler" />
+
+</beans>
